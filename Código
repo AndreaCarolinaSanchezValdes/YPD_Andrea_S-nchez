@@ -1,6 +1,10 @@
 <h1>PRUEBA PRÁCTICA</h1>
 <h3>YOUNG PROFESSIONAL DATA</h3>
+
 DESARROLLADO POR: 
 <b>Andrea Carolina Sánchez Valdés</b>
-#Importar librería Pandas
-import pandas as pd
+
+#Leer datos
+from pathlib import Path
+bm_path=Path("C://Users/hecansaga/Desktop/YPD/BASE_MOVIMIENTOS.txt")
+print(bm_path.read_text())
