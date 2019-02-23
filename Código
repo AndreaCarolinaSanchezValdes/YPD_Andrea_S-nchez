@@ -1,0 +1,6 @@
+<h1>PRUEBA PRÁCTICA</h1>
+<h3>YOUNG PROFESSIONAL DATA</h3>
+DESARROLLADO POR: 
+<b>Andrea Carolina Sánchez Valdés</b>
+#Importar librería Pandas
+import pandas as pd
