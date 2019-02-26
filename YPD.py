@@ -7,50 +7,70 @@
 # DESARROLLADO POR: 
 # <b>Andrea Carolina Sánchez Valdés</b>
 
-# In[163]:
+# In[ ]:
 
 
+#Importar librerías
 import matplotlib
 import matplotlib.pyplot as plt
 import os
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from datetime import date
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import classification_report
+import sklearn.metrics
 
 
-# In[2]:
+# In[ ]:
 
 
+#Leer datos BASE_ID.txt
 id_path=("C://Users/hecansaga/Desktop/YPD/BASE_ID.txt")
 df_id = pd.read_table(id_path)
 df_id.head()
 
 
-# In[3]:
+# In[ ]:
 
 
+#Leer datos BASE_MOVIMIENTOS.txt
 bm_path=("C://Users/hecansaga/Desktop/YPD/BASE_MOVIMIENTOS.txt")                   
 df_bm = pd.read_fwf(bm_path)
 df_bm.head()
 
 
-# In[4]:
+# In[ ]:
 
 
+#Observar la estructura de los datos de la base de movimientos
+df_bm.head()
+
+
+# In[ ]:
+
+
+#Tipos de variables en la base de movimientos
 df_bm.dtypes
 
 
-# In[5]:
+# In[ ]:
 
 
+#Correción y limpieza de datos
 df_bm.replace(regex=True,inplace=True,to_replace=r'\$ ',value=r'') 
 df_bm.replace(regex=True,inplace=True,to_replace=r'\.',value=r'')
 df_bm.replace(regex=True,inplace=True,to_replace=r'\,',value=r'.')
 
 
-# In[6]:
+# In[ ]:
 
 
+#Configurar correctamente los tipos de variables de la base de movimientos
 df_bm['SALDO_FONDOS']=df_bm['SALDO_FONDOS'].astype("float64")
 df_bm['SALDO_CREDITO1']=df_bm['SALDO_CREDITO1'].astype("float64")
 df_bm['SALDO_CREDITO2']=df_bm['SALDO_CREDITO2'].astype("float64")
@@ -58,194 +78,228 @@ df_bm['SALDO_ACTIVO']=df_bm['SALDO_ACTIVO'].astype("float64")
 df_bm['SALDO_PASIVO']=df_bm['SALDO_PASIVO'].astype("float64")
 
 
-# In[7]:
+# In[ ]:
 
 
+#verificar los nuevos tipos de variables
 df_bm.dtypes
 
 
-# In[8]:
+# In[ ]:
 
 
+#eliminar las datos de horas en la variable FECHA_INFORMACION
 df_bm['FECHA_INFORMACION'].replace(regex=True,inplace=True,to_replace=r'\:00',value=r'')
 
 
-# In[9]:
+# In[ ]:
 
 
+#Reemplazar valores de meses en letras por números en FECHA INFORMACION
 df_bm['FECHA_INFORMACION'].replace(regex=True,inplace=True,
                                    to_replace=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'],
                                    value=['/01/','/02/','/03/','/04/','/05/','/06/','/07/','/08/','/09/','/10/','/11/','/12/'])
 
 
-# In[10]:
+# In[ ]:
 
 
+#Convertir la variable FECHA INFORMACION  a tipo fecha
 df_bm['FECHA_INFORMACION']=pd.to_datetime(df_bm['FECHA_INFORMACION'])
-df_bm.dtypes
 
 
-# In[11]:
+# In[ ]:
 
 
+#Medidas estadisticas básicas para identificar los cambios en las variables
 df_bm.describe()
 
 
-# In[12]:
+# In[ ]:
 
 
+#Observar la estructura de los datos corregidos de la base de movimientos
 df_bm.head()
 
 
-# In[13]:
+# In[ ]:
 
 
+#Observar la estructura de los datos corregidos de la base id
+df_id.head()
+
+
+# In[ ]:
+
+
+#Tipos de variables en la base id
 df_id.dtypes
 
 
-# In[14]:
+# In[ ]:
 
 
+#Renombrar columna fuga por FUGA y CLIENTE CC por ID
 df_id.rename(columns={'fuga':'FUGA','CLIENTE_CC':'ID'},inplace=True)
 
 
-# In[15]:
+# In[ ]:
 
 
+#Correción y limpieza de datos
 df_id.replace(regex=True,inplace=True,to_replace=r'\$ ',value=r'') 
 df_id.replace(regex=True,inplace=True,to_replace=r'\.',value=r'')
 df_id.replace(regex=True,inplace=True,to_replace=r'\,',value=r'.')
 
 
-# In[16]:
+# In[ ]:
 
 
+#Reemplazar los datos NaN por 0s en las variables FUGA y MES DE FUGA
 df_id['FUGA']=df_id['FUGA'].fillna(0)
 df_id['MES_DE_FUGA']=df_id['MES_DE_FUGA'].fillna(0)
 
 
-# In[17]:
+# In[ ]:
 
 
+#Identificar valores unicos en la variable SEXO
 df_id['SEXO'].unique()
 
 
-# In[18]:
+# In[ ]:
 
 
+#Unificar los valores en la variable SEXO
 df_id['SEXO'].replace(inplace=True,to_replace=['F', 'HOMBRE', 'M', 'Hombre', 'mujer', 'femenino', 'masculino',
        'FEMENINO', 'Mujer', 'varón', 'Masc', 'MUJER'],
                       value=['FEMENINO', 'MASCULINO', 'MASCULINO', 'MASCULINO', 'FEMENINO', 'FEMENINO', 'MASCULINO',
        'FEMENINO', 'FEMENINO', 'MASCULINO', 'MASCULINO', 'FEMENINO'])
 
 
-# In[19]:
+# In[ ]:
 
 
+#Identificar valores unicos en la variable ESTADO CIVIL
 df_id['ESTADO_CIVIL'].unique()
 
 
-# In[20]:
+# In[ ]:
 
 
+#Identificar valores unicos en la variable SITUACION LABORAL
 df_id['SITUACION_LABORAL'].unique()
 
 
-# In[21]:
+# In[ ]:
 
 
+#Unificar los valores en la variable SITUACION LABORAL
 df_id['SITUACION_LABORAL'].replace(inplace=True,to_replace=['otros', 'Contrato fijo', 'OTROS', 'contrato autonomo',
        ' desconocido   ', 'CONTRATO AUTONOMO', 'CONTRATO FIJO', 'CONTRATO TEMPORAL', 'temporal     ', 'SIN CLASIFICAR'],
                                    value=['OTROS', 'CONTRATO FIJO', 'OTROS', 'CONTRATO AUTONOMO',
        'DESCONOCIDO', 'CONTRATO AUTONOMO', 'CONTRATO FIJO', 'CONTRATO TEMPORAL', 'CONTRATO TEMPORAL', 'SIN CLASIFICAR'])
 
 
-# In[22]:
+# In[ ]:
 
 
+#Reemplazar valores de meses en letras por números en FECHA ALTA
 df_id['FECHA_ALTA'].replace(regex=True,inplace=True,
                             to_replace=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'],
                             value=['01','02','03','04','05','06','07','08','09','10','11','12'])
 
 
-# In[23]:
+# In[ ]:
 
 
+#Extraer mes de FECHA ALTA
 df_mesid1=df_id['FECHA_ALTA'].str[:2].astype(object)
 df_mesid1.head()
 
 
-# In[24]:
+# In[ ]:
 
 
+#Extraer año de FECHA ALTA
 df_añoid1=df_id['FECHA_ALTA'].str[4:].astype(object)
 df_añoid1.head()
 
 
-# In[25]:
+# In[ ]:
 
 
+#Extraer día de FECHA ALTA
 df_diaid1=df_id['FECHA_ALTA'].str[2:4:].astype(object)
 df_diaid1.head()
 
 
-# In[26]:
+# In[ ]:
 
 
+#Extraer mes de FECHA NACIMIENTO
 df_mesid2=df_id['FECHA_NACIMIENTO'].str[4:6:].astype(object)
 df_mesid2.head()
 
 
-# In[27]:
+# In[ ]:
 
 
+#Extraer año de FECHA NACIMIENTO
 df_añoid2=df_id['FECHA_NACIMIENTO'].str[:4].astype(object)
 df_añoid2.head()
 
 
-# In[28]:
+# In[ ]:
 
 
+#Extraer día de FECHA NACIMIENTO
 df_diaid2=df_id['FECHA_NACIMIENTO'].str[6:].astype(object)
 df_diaid2.head()
 
 
-# In[29]:
+# In[ ]:
 
 
+#Construir nuevavamente FECHA ALTA
 df_id['FECHA_ALTA'] = df_diaid1+'/'+df_mesid1+'/'+df_añoid1
 df_id['FECHA_ALTA'].head()
 
 
-# In[30]:
+# In[ ]:
 
 
+#Construir nuevavamente FECHA NACIMIENTO
 df_id['FECHA_NACIMIENTO'] = df_diaid2+'/'+df_mesid2+'/'+df_añoid2
 df_id['FECHA_NACIMIENTO'].head()
 
 
-# In[31]:
+# In[ ]:
 
 
+#Identificar dato erroneo
 df_len=df_id['FECHA_NACIMIENTO'].str.len()
 df_len.head()
 
 
-# In[32]:
+# In[ ]:
 
 
+#Ubicación del dato erroreo
 df_len.idxmax()
 
 
-# In[33]:
+# In[ ]:
 
 
+#Reemplazar valor del dato erroneo
 df_id['FECHA_NACIMIENTO'].replace(inplace=True,to_replace='1-01/-0/0001',value='NaN')
 
 
-# In[34]:
+# In[ ]:
 
 
+#Configurar los tipos de variables de la base id
 df_id['ID']=df_id['ID'].astype('float64')
 df_id['ID']=df_id['ID'].astype('int64')
 df_id['FECHA_ALTA']=pd.to_datetime(df_id['FECHA_ALTA'])
@@ -255,30 +309,33 @@ df_id['MES_DE_FUGA']=df_id['MES_DE_FUGA'].astype('int64')
 df_id.dtypes
 
 
-# In[35]:
+# In[ ]:
 
 
+#Organizar la base de movimientos por orden ascendente según la variable ID y luego por FECHA INFORMACION
 df_bm=df_bm.sort_values(by=['ID','FECHA_INFORMACION'])
 df_bm.head()
 
 
-# In[36]:
+# In[ ]:
 
 
+#Unir las bases id y movimientos en una que mantiene todos los datos de la base de movimientos
 df_join=pd.merge(df_bm,df_id[['ID','FUGA','MES_DE_FUGA']],on='ID',how='left')
 df_join.head()
 
 
-# In[37]:
+# In[ ]:
 
 
+#Verificación de la nueva base de datos
 df_join.tail()
 
 
-# In[38]:
+# In[ ]:
 
 
-#Promedio abono nomina
+#Promedio abono nomina por trimestre
 
 count_row=df_join.shape[0]
 
@@ -293,23 +350,24 @@ for i in range(0, count_row):
         break
 
 
-# In[39]:
+# In[ ]:
 
 
+#Eliminar datos de promedio trimestre que no son correctos
 ids=df_join.groupby('ID').size()
 
 for i in range(2,2501):      
     countid=ids.at[i,]
     j=np.where(df_join["ID"] == i)[0]
     k=j[0]
-    df_join.at[k,'PROM_TRIM_ABONOS_NOMINA']="NaN"
-    df_join.at[k+1,'PROM_TRIM_ABONOS_NOMINA']="Nan"
+    df_join.at[k,'PROM_TRIM_ABONOS_NOMINA']=0.0
+    df_join.at[k+1,'PROM_TRIM_ABONOS_NOMINA']=0.0
     i=i+1
     if i>2501:
         break
 
 
-# In[40]:
+# In[ ]:
 
 
 #Promedio saldo ahorros
@@ -327,23 +385,24 @@ for i in range(0, count_row):
         break
 
 
-# In[41]:
+# In[ ]:
 
 
+#Eliminar datos de promedio trimestre que no son correctos
 ids=df_join.groupby('ID').size()
 
 for i in range(2,2501):      
     countid=ids.at[i,]
     j=np.where(df_join["ID"] == i)[0]
     k=j[0]
-    df_join.at[k,'PROM_TRIM_SALDO_AHORROS']="NaN"
-    df_join.at[k+1,'PROM_TRIM_SALDO_AHORROS']="Nan"
+    df_join.at[k,'PROM_TRIM_SALDO_AHORROS']=0.0
+    df_join.at[k+1,'PROM_TRIM_SALDO_AHORROS']=0.0
     i=i+1
     if i>2501:
         break
 
 
-# In[42]:
+# In[ ]:
 
 
 #Promedio saldo credito
@@ -364,31 +423,34 @@ for i in range(0, count_row):
         break
 
 
-# In[43]:
+# In[ ]:
 
 
+#Eliminar datos de promedio trimestre que no son correctos
 ids=df_join.groupby('ID').size()
 
 for i in range(2,2501):      
     countid=ids.at[i,]
     j=np.where(df_join["ID"] == i)[0]
     k=j[0]
-    df_join.at[k,'PROM_TRIM_SALDO_CREDITO']="NaN"
-    df_join.at[k+1,'PROM_TRIM_SALDO_CREDITO']="Nan"
+    df_join.at[k,'PROM_TRIM_SALDO_CREDITO']=0.0
+    df_join.at[k+1,'PROM_TRIM_SALDO_CREDITO']=0.0
     i=i+1
     if i>2501:
         break
 
 
-# In[44]:
+# In[ ]:
 
 
+#Verificación
 df_join.head()
 
 
-# In[110]:
+# In[ ]:
 
 
+#Generar promedio de saldos y abono nomina para los trimestres corridos
 for i in range(0,2500):
     j=np.where(df_join["ID"] == i+1)[0]
     y=tuple(j)
@@ -401,27 +463,24 @@ for i in range(0,2500):
         break
 
 
-# In[146]:
+# In[ ]:
 
 
-df_id.head(100)
-
-
-# In[114]:
-
-
+#Identificar correlaciones de la base id
 df_id.corr()
 
 
-# In[164]:
+# In[ ]:
 
 
+#Identificar correlaciones de la base id mediante un heatmap
 sns.heatmap(df_id.corr(), square=True, annot=True)
 
 
-# In[130]:
+# In[ ]:
 
 
+#Diagrama de frecuencias de la variable MES DE FUGA
 num_bins=6
 n,bins,patches = plt.hist(df_id['MES_DE_FUGA'],num_bins, alpha = 0.5 ) 
 plt.title('Histograma mes fuga')
@@ -430,160 +489,412 @@ plt.ylabel('Frencuencia')
 plt.show()
 
 
-# In[153]:
+# In[ ]:
 
 
-fig = plt.figure()
-
-ax0 = fig.add_subplot(2, 2, 1) 
-ax1 = fig.add_subplot(2, 2, 2) 
-ax2 = fig.add_subplot(2, 2, 3)
-
-df_id['PROM_TA_SALDO_CREDITO'].plot(kind='box', figsize=(10, 15), ax=ax0)
-ax0.set_title('Box plot saldo credito promedio trimestre')
-ax0.set_ylabel('Promedio saldo credito')
-
-df_id['PROM_TA_SALDO_AHORROS'].plot(kind='box', figsize=(10, 15), ax=ax1)
-ax1.set_title ('Box plot saldo ahorros promedio trimestre')
-ax1.set_ylabel('Promedio saldo ahorros')
-
-df_id['PROM_TA_ABONO_NOMINA'].plot(kind='box', figsize=(10, 15), ax=ax2)
-ax2.set_title ('Box plot Abono nomina promedio trimestral')
-ax2.set_ylabel('Abono nomina promedio')
-
-plt.show()
-
-
-# In[168]:
-
-
+#Frecuencias según la variable SEXO
 df_id['SEXO'].value_counts()
-
-
-# In[185]:
-
-
-df_id['ESTADO_CIVIL'].value_counts().plot(kind='pie', autopct='%.2f', figsize=(6, 6))
-plt.title('ESTADO CIVIL')
-plt.ylabel('')
-
-
-# In[179]:
-
-
-df_id['ESTADO_CIVIL'].value_counts()
-
-
-# In[184]:
-
-
-df_id['SITUACION_LABORAL'].value_counts().plot(kind='pie', autopct='%.2f', figsize=(6, 6))
-plt.title('ESTADO CIVIL')
-plt.ylabel('')
-
-
-# In[178]:
-
-
-df_id['SITUACION_LABORAL'].value_counts()
-
-
-# In[188]:
-
-
-df_sexo=pd.crosstab(index=df_id['FUGA'],
-            columns=df_id['SEXO'], margins=True)
-df_sexo
-
-
-# In[189]:
-
-
-df_civil=pd.crosstab(index=df_id['FUGA'],
-            columns=df_id['ESTADO_CIVIL'], margins=True)
-df_civil
-
-
-# In[190]:
-
-
-df_cont=pd.crosstab(index=df_id['FUGA'],
-            columns=df_id['SITUACION_LABORAL'], margins=True)
-df_cont
-
-
-# In[191]:
-
-
-pd.crosstab(index=df_id['FUGA'],columns=df_id['SEXO'], margins=True).apply(lambda r: r/len(df_id) *100,axis=1)
-
-
-# In[192]:
-
-
-pd.crosstab(index=df_id['FUGA'],columns=df_id['ESTADO_CIVIL'], margins=True).apply(lambda r: r/len(df_id) *100,axis=1)
-
-
-# In[193]:
-
-
-pd.crosstab(index=df_id['FUGA'],columns=df_id['SITUACION_LABORAL'], margins=True).apply(lambda r: r/len(df_id) *100,axis=1)
-
-
-# In[197]:
-
-
-pd.crosstab(index=df_id['FUGA'],columns=df_id['ESTADO_CIVIL']).apply(lambda r: r/r.sum() *100,axis=1)     
-
-
-# In[195]:
-
-
-pd.crosstab(index=df_id['FUGA'],columns=df_id['SITUACION_LABORAL']).apply(lambda r: r/r.sum() *100,axis=1)                                
-
-
-# In[198]:
-
-
-pd.crosstab(index=df_id['FUGA'],columns=df_id['SEXO']).apply(lambda r: r/r.sum() *100,axis=1)
-
-
-# In[206]:
-
-
-pd.crosstab(index=df_id['FUGA'],columns=df_id['SITUACION_LABORAL']
-                  ).apply(lambda r: r/r.sum() *100,
-                                              axis=1).plot(kind='bar',figsize=(10,10))
-
-
-# In[207]:
-
-
-pd.crosstab(index=df_id['FUGA'],columns=df_id['ESTADO_CIVIL']
-                  ).apply(lambda r: r/r.sum() *100,
-                                              axis=1).plot(kind='bar',figsize=(10,10))
-
-
-# In[218]:
-
-
-df_id['PROM_TA_ABONO_NOMINA'].plot(kind='area', figsize=(10,10))
-
-
-# In[219]:
-
-
-df_id['PROM_TA_SALDO_AHORROS'].plot(kind='area',figsize=(10,10))
-
-
-# In[220]:
-
-
-df_id['PROM_TA_SALDO_CREDITO'].plot(kind='area',figsize=(10,10))
 
 
 # In[ ]:
 
 
+#Diagrama de pastel de la variable ESTADO CVIL
+df_id['ESTADO_CIVIL'].value_counts().plot(kind='pie', autopct='%.2f', figsize=(6, 6))
+plt.title('ESTADO CIVIL')
+plt.ylabel('')
 
+
+# In[ ]:
+
+
+#Frecuencias según la variable ESTADO CIVIL
+df_id['ESTADO_CIVIL'].value_counts()
+
+
+# In[ ]:
+
+
+#Diagrama de pastel de la variable SITUACION LABORAL
+df_id['SITUACION_LABORAL'].value_counts().plot(kind='pie', autopct='%.2f', figsize=(6, 6))
+plt.title('ESTADO CIVIL')
+plt.ylabel('')
+
+
+# In[ ]:
+
+
+#Frecuencias según la variable SITUACION LABORAL
+df_id['SITUACION_LABORAL'].value_counts()
+
+
+# In[ ]:
+
+
+#Tabla de contingencia entre FUGA y SEXO
+df_sexo=pd.crosstab(index=df_id['FUGA'],
+            columns=df_id['SEXO'], margins=True)
+df_sexo
+
+
+# In[ ]:
+
+
+#Tabla de contingencia entre FUGA y ESTADO CIVIL
+df_civil=pd.crosstab(index=df_id['FUGA'],
+            columns=df_id['ESTADO_CIVIL'], margins=True)
+df_civil
+
+
+# In[ ]:
+
+
+#Tabla de contingencia entre FUGA y SITUACION
+df_cont=pd.crosstab(index=df_id['FUGA'],
+            columns=df_id['SITUACION_LABORAL'], margins=True)
+df_cont
+
+
+# In[ ]:
+
+
+#Tabla de contingencia entre FUGA y SEXO expresado como porcentaje relativo total
+pd.crosstab(index=df_id['FUGA'],columns=df_id['SEXO'], margins=True).apply(lambda r: r/len(df_id) *100,axis=1)
+
+
+# In[ ]:
+
+
+#Tabla de contingencia entre FUGA y ESTADO CIVIL expresado como porcentaje relativo total
+pd.crosstab(index=df_id['FUGA'],columns=df_id['ESTADO_CIVIL'], margins=True).apply(lambda r: r/len(df_id) *100,axis=1)
+
+
+# In[ ]:
+
+
+#Tabla de contingencia entre FUGA y SITUACION LABORAL expresado como porcentaje relativo total
+pd.crosstab(index=df_id['FUGA'],columns=df_id['SITUACION_LABORAL'], margins=True).apply(lambda r: r/len(df_id) *100,axis=1)
+
+
+# In[ ]:
+
+
+#Tabla de contingencia en porcentaje relativo según sexo
+pd.crosstab(index=df_id['FUGA'],columns=df_id['SEXO']).apply(lambda r: r/r.sum() *100,axis=1)
+
+
+# In[ ]:
+
+
+#Tabla de contingencia en porcentaje relativo según estado civil
+pd.crosstab(index=df_id['FUGA'],columns=df_id['ESTADO_CIVIL']).apply(lambda r: r/r.sum() *100,axis=1)     
+
+
+# In[ ]:
+
+
+#Tabla de contingencia en porcentaje relativo según situacion laboral
+pd.crosstab(index=df_id['FUGA'],columns=df_id['SITUACION_LABORAL']).apply(lambda r: r/r.sum() *100,axis=1)                                
+
+
+# In[ ]:
+
+
+# Gráfico de barras de fuga segun situación laboral
+pd.crosstab(index=df_id['FUGA'],columns=df_id['SITUACION_LABORAL']
+                  ).apply(lambda r: r/r.sum() *100,
+                                              axis=1).plot(kind='bar',figsize=(10,10))
+
+
+# In[ ]:
+
+
+# Gráfico de barras de fuga segun estado civil
+pd.crosstab(index=df_id['FUGA'],columns=df_id['ESTADO_CIVIL']
+                  ).apply(lambda r: r/r.sum() *100,
+                                              axis=1).plot(kind='bar',figsize=(10,10))
+
+
+# In[ ]:
+
+
+#Generar edad de los clientes
+date='2017-12-01'
+date=pd.to_datetime(date)
+for i in range(0,2500):
+    df_id.loc[i,'EDAD']= (date- df_id.at[i,'FECHA_NACIMIENTO']) / 365
+    i=i+1
+    if i>2501:
+        break
+
+
+# In[ ]:
+
+
+df_id['EDAD']=df_id['EDAD'].dt.days
+
+
+# In[ ]:
+
+
+#Generar tiempo de alta de los clientes
+date='2017-12-01'
+date=pd.to_datetime(date)
+for i in range(0,2500):
+    df_id.loc[i,'TIEMPO_ALTA']= (date- df_id.at[i,'FECHA_ALTA']) / 365
+    i=i+1
+    if i>2501:
+        break
+
+
+# In[ ]:
+
+
+df_id['TIEMPO_ALTA']=df_id['TIEMPO_ALTA'].dt.days
+
+
+# In[ ]:
+
+
+df_id.head()
+
+
+# In[ ]:
+
+
+# Box plot de fuga segun edad
+pd.crosstab(columns=df_id['FUGA'],index=df_id['TIEMPO_ALTA']
+                  ).apply(lambda r: r/r.sum() *100,
+                                              axis=1).plot(kind='box',figsize=(10,10))
+
+
+# In[ ]:
+
+
+# Box plot de fuga segun edad
+pd.crosstab(columns=df_id['FUGA'],index=df_id['EDAD']
+                  ).apply(lambda r: r/r.sum() *100,
+                                              axis=1).plot(kind='box',figsize=(10,10))
+
+
+# In[ ]:
+
+
+#Histograma de fuga según la edad
+pd.crosstab(columns=df_id['FUGA'],index=df_id['EDAD']
+                  ).apply(lambda r: r/r.sum() *100,
+                                              axis=1).plot(kind='hist',figsize=(10,10),alpha=0.7)
+
+
+# In[ ]:
+
+
+#Histograma de fuga según tiempo alta
+pd.crosstab(columns=df_id['FUGA'],index=df_id['TIEMPO_ALTA']
+                  ).apply(lambda r: r/r.sum() *100,
+                                              axis=1).plot(kind='hist',figsize=(10,10),alpha=0.7)
+
+
+# In[ ]:
+
+
+# Box plot de fuga segun prom abono nomina
+df_id.boxplot('PROM_TA_ABONO_NOMINA', by='FUGA', figsize=(12, 8))
+
+
+# In[ ]:
+
+
+# Box plot de fuga segun prom saldo ahorros
+df_id.boxplot('PROM_TA_SALDO_AHORROS', by='FUGA', figsize=(12, 8))
+
+
+# In[ ]:
+
+
+# Box plot de fuga segun prom saldo creditos
+df_id.boxplot('PROM_TA_SALDO_CREDITO', by='FUGA', figsize=(12, 8))
+
+
+# In[ ]:
+
+
+# H0:Los niveles de media de edad son iguales si el cliente es fugado o no
+mod = ols('EDAD ~ FUGA',
+                data=df_id).fit()
+                
+aov_table = sm.stats.anova_lm(mod, typ=2)
+print(aov_table)
+
+
+# In[ ]:
+
+
+# H0:Los niveles de media del tiempo de alta son iguales si el cliente es fugado o no
+mod = ols('TIEMPO_ALTA ~ FUGA',
+                data=df_id).fit()
+                
+aov_table = sm.stats.anova_lm(mod, typ=2)
+print(aov_table)
+
+
+# In[ ]:
+
+
+mod = ols('PROM_TA_SALDO_CREDITO ~ FUGA',
+                data=df_id).fit()
+                
+aov_table = sm.stats.anova_lm(mod, typ=2)
+print(aov_table)
+
+
+# In[ ]:
+
+
+mod = ols('PROM_TA_SALDO_AHORROS ~ FUGA',
+                data=df_id).fit()
+                
+aov_table = sm.stats.anova_lm(mod, typ=2)
+print(aov_table)
+
+
+# In[ ]:
+
+
+mod = ols('PROM_TA_ABONO_NOMINA ~ FUGA',
+                data=df_id).fit()
+                
+aov_table = sm.stats.anova_lm(mod, typ=2)
+print(aov_table)
+
+
+# In[ ]:
+
+
+df_id.describe()
+
+
+# In[ ]:
+
+
+df_true=df_id.query('FUGA==True')
+
+
+# In[ ]:
+
+
+df_true.mean()
+
+
+# In[ ]:
+
+
+df_false=df_id.query('FUGA==False')
+
+
+# In[ ]:
+
+
+df_false.mean()
+
+
+# In[ ]:
+
+
+#Directorio
+os.chdir("C://Users/hecansaga/Desktop/YPD")
+
+
+# In[ ]:
+
+
+#Limpiar de datos missing
+df_idc = df_id.dropna()
+
+
+# In[ ]:
+
+
+#Definir variables predictoras y objetivo
+predictors = df_idc[['EDAD','TIEMPO_ALTA','PROM_TA_ABONO_NOMINA','PROM_TA_SALDO_AHORROS','PROM_TA_SALDO_CREDITO']]
+targets = df_idc.FUGA
+
+
+# In[ ]:
+
+
+#Muestra de entrenamiento y de test con un test del 40%
+pred_train, pred_test, tar_train, tar_test = train_test_split(predictors, targets, test_size=.2)
+
+
+# In[ ]:
+
+
+#tamaño muestra predictora train
+pred_train.shape
+
+
+# In[ ]:
+
+
+#tamaño muestra predictora test
+pred_test.shape
+
+
+# In[ ]:
+
+
+#tamaño muestra objetivo train
+tar_train.shape
+
+
+# In[ ]:
+
+
+#tamaño muestra objetivo test
+tar_test.shape
+
+
+# In[ ]:
+
+
+#Árbol
+classifier=DecisionTreeClassifier()
+classifier=classifier.fit(pred_train,tar_train)
+
+
+# In[ ]:
+
+
+#Predicciones
+predictions=classifier.predict(pred_test)
+
+
+# In[ ]:
+
+
+#Matriz de confusión de predicciones
+sklearn.metrics.confusion_matrix(tar_test,predictions)
+
+
+# In[ ]:
+
+
+#Indice de precision
+sklearn.metrics.accuracy_score(tar_test, predictions)
+
+
+# In[ ]:
+
+
+from sklearn import tree
+from io import StringIO
+from IPython.display import Image
+
+
+# In[ ]:
+
+
+out = StringIO()
+tree.export_graphviz(classifier, out_file='treeYPD.dot')
 
