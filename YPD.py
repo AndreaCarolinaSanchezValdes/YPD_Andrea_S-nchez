@@ -937,11 +937,3 @@ from IPython.display import Image
 out = StringIO()
 tree.export_graphviz(classifier, out_file='treeYPD.dot')
 
-
-# In[ ]:
-
-
-#Librerías para regresión logística
-from sklearn.linear_model import LogisticRegression
-from sklearn import metrics
-
