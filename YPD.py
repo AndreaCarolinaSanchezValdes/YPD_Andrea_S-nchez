@@ -540,18 +540,6 @@ df_id.corr()
 sns.heatmap(df_id.corr(), square=True, annot=True)
 
 
-# In[54]:
-
-
-#Diagrama de frecuencias de la variable MES DE FUGA
-#num_bins=6
-#n,bins,patches = plt.hist(df_id['MES_DE_FUGA'],num_bins, alpha = 0.5 ) 
-#plt.title('Histograma mes fuga')
-#plt.xlabel('Mes')
-#plt.ylabel('Frencuencia')
-#plt.show()
-
-
 # In[55]:
 
 
@@ -689,7 +677,7 @@ pd.crosstab(index=df_id['FUGA'],columns=df_id['ESTADO_CIVIL']
 # In[72]:
 
 
-# Box plot de fuga segun edad
+# Box plot de fuga segun tiempo alta
 pd.crosstab(columns=df_id['FUGA'],index=df_id['TIEMPO_ALTA']
                   ).apply(lambda r: r/r.sum() *100,
                                               axis=1).plot(kind='box',figsize=(10,10))
